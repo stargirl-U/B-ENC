@@ -6,11 +6,10 @@ from typing import List
 # =========================
 st.set_page_config(
     page_title="B-ENC Barcode Cipher",
-    page_icon="📊",
     layout="centered"
 )
 
-st.title("📊 B-ENC: Barcode-Based Encryption Cipher")
+st.title("B-ENC: Barcode-Based Encryption Cipher")
 st.write("Aplikasi enkripsi & dekripsi teks berbasis konsep barcode (sesuai laporan B-ENC)")
 
 # =========================
