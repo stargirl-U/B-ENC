@@ -16,7 +16,16 @@ st.write("Aplikasi enkripsi & dekripsi teks berbasis konsep barcode (sesuai lapo
 # =========================
 # Konstanta & Kunci
 # =========================
-KEY_PATTERN = "101011"  # barcode key
+# =========================
+# Kunci Dinamis
+# =========================
+# Default key (bisa diubah user)
+DEFAULT_KEY = "101011"
+
+key_input = st.text_input("Masukkan Key Barcode (contoh: 101011)", DEFAULT_KEY)
+KEY_PATTERN = ''.join([c for c in key_input if c in ['0','1']])
+
+st.caption("Bit 1 = garis hitam | Bit 0 = garis putih")
 
 # =========================
 # Fungsi Konversi
@@ -58,17 +67,39 @@ def encrypt(numbers: List[int]) -> List[int]:
 
 
 # =========================
-# Fungsi Generate Barcode (Code128)
+# Fungsi Generate Barcode Custom (EAN-like, Hitam-Putih Murni)
 # =========================
-def generate_barcode(data: str):
-    import barcode
-    from barcode.writer import ImageWriter
-    from io import BytesIO
+def generate_custom_barcode(cipher_numbers):
+    """
+    Membuat barcode hitam-putih sederhana ala EAN.
+    Hitam = 1, Putih = 0
+    Setiap angka diubah ke biner 7-bit (mirip EAN concept)
+    """
+    bars = []
+    for num in cipher_numbers:
+        binary = format(num, '07b')  # 7-bit biner
+        bars.extend(list(binary))
+        bars.append('0')  # separator
+    return bars
 
-    code128 = barcode.get('code128', data, writer=ImageWriter())
-    buffer = BytesIO()
-    code128.write(buffer)
-    return buffer
+
+def render_barcode_image(bars):
+    from PIL import Image, ImageDraw
+
+    bar_width = 4
+    height = 120
+    width = len(bars) * bar_width
+
+    img = Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(img)
+
+    for i, bit in enumerate(bars):
+        if bit == '1':
+            x0 = i * bar_width
+            x1 = x0 + bar_width
+            draw.rectangle([x0, 0, x1, height], fill="black")
+
+    return img
 
 
 # =========================
@@ -107,10 +138,15 @@ if menu == "🔐 Enkripsi":
         cipher_str = ' '.join(map(str, cipher))
         st.code(cipher_str)
 
-        st.write("### Visual Barcode (Scannable)")
-        st.info("Barcode di bawah ini dapat dipindai menggunakan scanner / Google Lens")
-        barcode_img = generate_barcode(cipher_str)
-        st.image(barcode_img, caption="Barcode Ciphertext (Code-128)", use_column_width=True)
+        st.write("### Barcode Custom (EAN-like)")
+        st.info("Barcode ini adalah representasi biner hitam-putih ala EAN (custom, tanpa library)")
+
+        bars = generate_custom_barcode(cipher)
+        barcode_img = render_barcode_image(bars)
+        st.image(barcode_img, caption="Custom Barcode B-ENC (Hitam = 1, Putih = 0)", use_column_width=True)
+
+        st.write("### Diagram Transformasi")
+        st.markdown("Plaintext → Angka → Ciphertext → Biner → Barcode")
 
 elif menu == "🔓 Dekripsi":
     st.subheader("Dekripsi Barcode Cipher → Plaintext")
@@ -132,4 +168,66 @@ elif menu == "🔓 Dekripsi":
 
 
 st.markdown("---")
-st.caption("Metode B-ENC | Kriptografi Simetris Berbasis Barcode | Nayla Rachmaddina")
+
+# =========================
+# FLOWCHART & DIAGRAM BLOK
+# =========================
+st.header("📈 Flowchart & Diagram Blok Sistem B-ENC")
+
+st.subheader("Flowchart Proses Enkripsi")
+st.code("""
+Mulai
+  ↓
+Input Plaintext
+  ↓
+Konversi Huruf → Angka
+  ↓
+Input Key Barcode (Biner)
+  ↓
+Enkripsi B-ENC (+3 / -1)
+  ↓
+Ciphertext Angka
+  ↓
+Konversi ke Biner (7-bit)
+  ↓
+Barcode Custom Hitam–Putih
+  ↓
+Selesai
+""")
+
+st.subheader("Flowchart Proses Dekripsi")
+st.code("""
+Mulai
+  ↓
+Input Barcode / Ciphertext
+  ↓
+Ekstraksi Biner
+  ↓
+Konversi ke Angka
+  ↓
+Input Key Barcode
+  ↓
+Dekripsi B-ENC (-3 / +1)
+  ↓
+Plaintext
+  ↓
+Selesai
+""")
+
+st.subheader("Diagram Blok Sistem")
+st.code("""
+[Plaintext]
+     ↓
+[Konversi Angka]
+     ↓
+[Enkripsi B-ENC]
+     ←── Key Barcode Dinamis
+     ↓
+[Ciphertext]
+     ↓
+[Konversi Biner]
+     ↓
+[Barcode Custom]
+""")
+
+st.caption("Flowchart & Diagram Blok – Implementasi Metode B-ENC")
