@@ -58,6 +58,20 @@ def encrypt(numbers: List[int]) -> List[int]:
 
 
 # =========================
+# Fungsi Generate Barcode (Code128)
+# =========================
+def generate_barcode(data: str):
+    import barcode
+    from barcode.writer import ImageWriter
+    from io import BytesIO
+
+    code128 = barcode.get('code128', data, writer=ImageWriter())
+    buffer = BytesIO()
+    code128.write(buffer)
+    return buffer
+
+
+# =========================
 # Fungsi Dekripsi
 # =========================
 def decrypt(numbers: List[int]) -> List[int]:
@@ -90,7 +104,12 @@ if menu == "🔐 Enkripsi":
         st.code(numeric)
 
         st.write("### Ciphertext (Angka Barcode)")
-        st.code(cipher)
+        cipher_str = ' '.join(map(str, cipher))
+        st.code(cipher_str)
+
+        st.write("### Visual Barcode (Scannable)")
+        barcode_img = generate_barcode(cipher_str)
+        st.image(barcode_img, caption="Scan barcode untuk mendapatkan ciphertext")
 
 elif menu == "🔓 Dekripsi":
     st.subheader("Dekripsi Barcode Cipher → Plaintext")
