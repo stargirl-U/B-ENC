@@ -108,8 +108,9 @@ if menu == "🔐 Enkripsi":
         st.code(cipher_str)
 
         st.write("### Visual Barcode (Scannable)")
+        st.info("Barcode di bawah ini dapat dipindai menggunakan scanner / Google Lens")
         barcode_img = generate_barcode(cipher_str)
-        st.image(barcode_img, caption="Scan barcode untuk mendapatkan ciphertext")
+        st.image(barcode_img, caption="Barcode Ciphertext (Code-128)", use_column_width=True)
 
 elif menu == "🔓 Dekripsi":
     st.subheader("Dekripsi Barcode Cipher → Plaintext")
